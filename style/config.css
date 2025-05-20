@@ -1,0 +1,118 @@
+@import url("./common.css");
+@import url("./macros.css");
+
+@import url("./palestine-flag.css");
+@import url("./notifications.css");
+@import url("./dashboard.css");
+@import url("./launcher.css");
+@import url("./players.css");
+@import url("./pager.css");
+@import url("./osd.css");
+
+button {
+  background-size: 400% 400%;
+}
+
+#bar-inner {
+  padding: apply(inner-padding-medium);
+  background-color: var(--window-bg);
+  border-radius: unset;
+  min-height: 28px;
+}
+
+#workspaces {
+  padding: 6px;
+  min-width: 0px;
+  background-color: var(--module-bg);
+}
+
+#workspaces > button {
+  padding: 0px 8px;
+  transition: padding 0.05s steps(3);
+  background-color: var(--ws-inactive);
+}
+
+#workspaces > button > label {
+  font-size: 0px;
+}
+
+#workspaces > button:hover {
+  background-color: var(--ws-hover);
+}
+
+#workspaces > button.urgent {
+  background-color: var(--ws-urgent);
+}
+
+#workspaces > button.active {
+  padding: 0px 32px;
+  background-color: var(--ws-active);
+}
+
+#workspaces > button.empty {
+  background-color: var(--ws-empty);
+}
+
+#cava,
+#date-time,
+#power-menu,
+#hyprland-language,
+#hyprland-window {
+  background-color: var(--module-bg);
+  padding: 0px 8px;
+}
+
+#cava {
+  border: solid var(--foreground) 1px;
+}
+
+#cava .bars {
+  border-radius: 1rem 1rem 0rem 0rem;
+  background-color: var(--foreground);
+  min-width: 4px;
+}
+
+/* system tray */
+#system-tray {
+  padding: 2px 4px;
+  background-color: var(--module-bg);
+}
+
+/* menu and menu items (written for the system tray) */
+menu {
+  border: solid 2px;
+  border-radius: 10px;
+  border-color: var(--border-color);
+  background-color: var(--window-bg);
+}
+
+menu > menuitem {
+  border-radius: 0px;
+  background-color: var(--module-bg);
+  padding: 6px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+menu > menuitem:first-child {
+  margin-top: 1px;
+  border-radius: 8px 8px 0px 0px;
+}
+
+menu > menuitem:last-child {
+  margin-bottom: 1px;
+  border-radius: 0px 0px 8px 8px;
+}
+
+menu > menuitem:hover {
+  background-color: var(--border-color);
+}
+
+.panel-progress-bar {
+  border: solid 12px alpha(var(--color9), 0.8);
+}
+
+#status-container {
+  background-color: var(--module-bg);
+  padding: 2px;
+}

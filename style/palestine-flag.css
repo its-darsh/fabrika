@@ -1,0 +1,20 @@
+.palestine-flag {
+  border: solid 1px var(--module-bg);
+  background-image:
+    radial-gradient(circle, rgba(0, 0, 0, 0) 80%, var(--module-bg) 100%),
+    linear-gradient(
+      0deg,
+      var(--module-bg) 0%,
+      rgba(0, 0, 0, 0) 28%,
+      rgba(0, 0, 0, 0) 90%,
+      var(--module-bg) 100%
+    ),
+    linear-gradient(
+      0deg,
+      alpha(var(--module-bg), 0.4) 0%,
+      alpha(var(--module-bg), 0.4) 100%
+    ),
+    @apply relative-path("./style/palestine-flag.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}

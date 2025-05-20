@@ -1,0 +1,36 @@
+#player {
+  background-color: var(--module-bg);
+}
+
+#players-container {
+  margin: -4px 0px;
+}
+
+#player {
+  padding-left: 2px;
+  margin: 4px 0px;
+}
+
+#player .metadata,
+.player-control.next {
+  padding-right: 12px;
+}
+
+#player:hover .metadata > * {
+  color: darker(var(--foreground));
+}
+
+.player-title {
+  margin-bottom: -8px;
+  font-size: apply(font-size-small);
+  font-weight: 500;
+}
+
+.player-artist {
+  font-size: apply(font-size-extra-small);
+}
+
+.player-icon {
+  margin: 4px;
+  opacity: 0.6;
+}

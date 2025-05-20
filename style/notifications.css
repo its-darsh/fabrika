@@ -1,0 +1,92 @@
+@keyframes notifications-pop {
+  50% {
+    /* min-width: 30rem; */
+    padding-left: 0.8rem;
+    /* padding-bottom: 0.8rem; */
+    /* padding-right: 1.8rem; */
+    /* background-image: var(--module-bg); */
+  }
+
+  100% {
+    padding: apply(window-padding-large);
+  }
+}
+
+@define background-shine(--color) {
+  background-image: linear-gradient(
+    -75deg,
+    transparent 0,
+    transparent 0,
+    --color 5%,
+    --color 20%,
+    transparent 10%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: -150% 0%;
+  }
+}
+
+#notifications {
+  padding: apply(window-padding-large);
+  background-color: var(--window-bg);
+
+  border-radius: 0rem;
+  /* get rid of default border radius set globally */
+  border-bottom-left-radius: apply(border-radius-large);
+}
+
+#notifications.popped {
+  animation: 1s cubic-bezier(0.41, 0.42, 0.03, 0.9) notifications-pop;
+  padding: apply(window-padding-large);
+}
+
+#notification {
+  background-color: var(--module-bg);
+  padding: apply(inner-padding-medium);
+  border-radius: calc(apply(border-radius-large) - apply(window-padding-large));
+  min-width: 28rem;
+}
+
+#notification.shine {
+  animation: 1s ease-in-out shine;
+  @apply background-shine(var(--module-bg));
+}
+
+#notification image,
+#notification button {
+  /* can't use nested "clac" statements. sadage */
+  border-radius: 0.6rem;
+}
+
+#notification button {
+  background-color: var(--module-bg);
+  padding: apply(inner-padding-medium);
+}
+
+#notification button:hover {
+  background-color: alpha(var(--color2), 0.3);
+}
+
+#notification .body,
+#notification .summary {
+  margin: 0rem apply(inner-margin-medium);
+}
+
+#notification .summary {
+  font-size: apply(font-size-large);
+  font-weight: bold;
+  margin-bottom: -apply(inner-margin-medium);
+}
+
+#notification .body {
+  color: darker(var(--foreground));
+}

@@ -1,0 +1,84 @@
+@keyframes app-slot-shine {
+  50% {
+    background-color: alpha(var(--color2), 0.4);
+    margin: 1rem;
+  }
+
+  100% {
+    background-color: alpha(var(--color2), 0.2);
+    margin: inherit;
+  }
+}
+
+@keyframes overshooting {
+  80% {
+    margin: calc(apply(inner-margin-small) + 0.3rem);
+    padding: calc(apply(window-padding-large) + 0.2rem);
+  }
+
+  100% {
+    margin: apply(inner-margin-small);
+    padding: apply(window-padding-large);
+  }
+}
+
+#launcher.overshoot {
+  animation: 350ms cubic-bezier(0.2, 1, 0.8, 1) overshooting;
+}
+
+#launcher {
+  margin: apply(inner-margin-small);
+  padding: apply(window-padding-large);
+  border-radius: apply(border-radius-large);
+  background-color: var(--background);
+}
+
+.app-search-entry {
+  color: var(--foreground);
+}
+
+.app-search-header.shine {
+  @apply background-shine(var(--module-bg));
+  animation: 1s ease-in-out shine infinite;
+}
+
+.app-search-header,
+.app-slot {
+  padding: 0.5rem;
+  border: solid 1px transparent;
+
+  border-radius: calc(apply(border-radius-large) - apply(window-padding-large));
+  background-color: alpha(var(--color2), 0.2);
+
+  transition: border 0.1s ease-in-out;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.app-slot.wallpaper > box {
+  min-height: 4rem;
+  transition: all 0.2s cubic-bezier(0.2, 1, 0.8, 1);
+  background-size: cover;
+}
+
+.app-slot.wallpaper:focus > box {
+  min-height: 12rem;
+}
+
+.app-slot:hover {
+  border-color: var(--border-color);
+}
+
+.app-slot:focus {
+  border-color: var(--border-color);
+  background-color: var(--ws-active);
+}
+
+.app-slot.shine {
+  animation: app-slot-shine;
+}
+
+.app-description {
+  color: darker(var(--foreground));
+  font-size: 12px;
+  font-weight: normal;
+}

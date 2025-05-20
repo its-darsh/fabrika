@@ -1,0 +1,47 @@
+@define pos-top-pad(--top, --left, --bottom, --right) {
+  padding-top: --left;
+  padding-right: --right;
+  padding-left: --top;
+  padding-bottom: --bottom;
+}
+
+@define pos-right-pad(--top, --left, --bottom, --right) {
+  padding-top: --top;
+  padding-right: --right;
+  padding-left: --left;
+  padding-bottom: --bottom;
+}
+
+@define pos-top-min-size(--min-width, --min-height) {
+  min-width: --min-height;
+  min-height: --min-width;
+}
+
+@define pos-right-min-size(--min-width, --min-height) {
+  min-width: --min-width;
+  min-height: --min-height;
+}
+
+@define pos-right-radius(--radius) {
+  border-radius: 0px;
+  border-top-left-radius: --radius;
+  border-bottom-left-radius: --radius;
+}
+
+@define pos-top-radius(--radius) {
+  border-radius: 0px;
+  border-bottom-right-radius: --radius;
+  border-bottom-left-radius: --radius;
+}
+
+@define pos-bottom-radius(--radius) {
+  border-radius: 0px;
+  border-top-right-radius: --radius;
+  border-top-left-radius: --radius;
+}
+
+@define pos-left-radius(--radius) {
+  border-radius: 0px;
+  border-top-right-radius: --radius;
+  border-bottom-right-radius: --radius;
+}

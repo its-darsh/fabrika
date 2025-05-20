@@ -1,0 +1,58 @@
+/* date & time + hyprctl splash */
+/* #clock-widget > label,
+#clock-widget > * > label {
+} */
+
+#clock-widget > #date > label {
+  font-size: 1.5rem;
+}
+
+#clock-widget > #time > label {
+  margin: -1.6rem;
+  font-size: apply(font-size-extra-extra-large);
+  font-weight: 900;
+}
+
+/* weather */
+#weather {
+  padding: apply(window-padding-large);
+  border-radius: apply(border-radius-extra-large);
+  background-color: var(--window-bg);
+  min-width: apply(weather-min-width);
+}
+
+#weather-inner {
+  padding: apply(inner-padding-large);
+  border-radius: calc(
+    apply(border-radius-extra-large) - apply(window-padding-large)
+  );
+  background-color: var(--module-bg);
+}
+
+#weather-icon,
+#weather-temp {
+  font-weight: bolder;
+  font-size: apply(font-size-extra-large);
+}
+
+#weather-temp {
+  margin-top: -1rem;
+}
+
+#weather-description {
+  margin-bottom: -2rem;
+}
+
+#weather-feels-like {
+  margin-top: -1.2rem;
+  color: darker(var(--foreground));
+}
+
+#weather-time {
+  font-size: apply(font-size-small);
+  color: darker(var(--foreground));
+}
+
+#weather-location {
+  font-weight: bolder;
+}

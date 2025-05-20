@@ -1,0 +1,53 @@
+#osd {
+  padding: 0.4rem;
+  border-radius: 1.8rem;
+  background-color: var(--window-bg);
+}
+
+#osd-container {
+  border-radius: 1.5rem;
+  background-color: var(--module-bg);
+  @apply pos-top-pad(1rem, 0.4rem, 0.4rem, 0.4rem);
+}
+
+#osd-container,
+#osd-container > *,
+#osd-container > * > *,
+#osd-container > * > * > * {
+  transition: all 0.5s cubic-bezier(0.1, 1.2, 0.8, 1);
+}
+
+scale {
+  @apply pos-top-min-size(2rem, 18rem);
+}
+
+trough {
+  @apply pos-top-min-size(2rem, inherit);
+  border-radius: 1rem;
+  background-color: var(--background);
+}
+
+highlight {
+  margin: 0.4rem;
+  background-color: var(--foreground);
+  border-radius: 0.8rem;
+}
+
+scale:hover,
+#osd-container.focused scale {
+  @apply pos-top-min-size(inherit, 21rem);
+}
+
+scale:hover trough,
+#osd-container.focused scale trough {
+  border-radius: 1.2rem;
+  @apply pos-top-min-size(3rem, inherit);
+}
+
+/* cubic-bezier(0.1, 1.2, 0.8, 1.0); */
+
+/* #osd-container>*>*>* {
+  transition: all 0.5s cubic-bezier(0.1, 1, 0.75, 1);
+  transition: min-height 0.5s cubic-bezier(0.11, 1.36, 0.72, 1.02);
+  transition: min-width 0.5s cubic-bezier(0.15, 0.70, 0, 1);
+} */
