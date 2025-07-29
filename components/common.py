@@ -32,7 +32,7 @@ from fabric.system_tray.widgets import SystemTray
 
 from components.services.animator import Animator
 from fabric.notifications import Notification, Notifications
-from fabric import Fabricator, Service, Signal, Property
+from fabric import Fabricator, Service, Signal, Property, Builder
 from fabric.widgets.scrolledwindow import ScrolledWindow
 from fabric.widgets.wayland import WaylandWindow as Window
 from fabric.widgets.circularprogressbar import CircularProgressBar

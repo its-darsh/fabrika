@@ -126,7 +126,7 @@ PowerButton = partial(
     },
     on_entry_dispatched=lambda btn, entry: exec_shell_command_async(
         f"""
-        notify-send "Mayday, Mayday!" "I should be doing the action \\"{entry}\\". However, I'm not programmed enough to do such thing"
+        notify-send "Mayday, Mayday!" "I should be doing the action \\"{entry}\\". However, I'm not programmed enough to do such thing."
         """
     ),
 )

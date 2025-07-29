@@ -57,9 +57,21 @@ button {
 #date-time,
 #power-menu,
 #hyprland-language,
-#hyprland-window {
+#hyprland-window.title {
   background-color: var(--module-bg);
   padding: 0px 8px;
+}
+
+#hyprland-window.title>* {
+  /* margin-top: 4px; */
+}
+
+#hyprland-window.class{
+  margin: -2px 8px;
+}
+#hyprland-window.class > * {
+  font-size: apply(font-size-extra-small);
+  color: darker(var(--foreground));
 }
 
 #cava {
@@ -86,25 +98,31 @@ menu {
   background-color: var(--window-bg);
 }
 
-menu > menuitem {
+menuitem {
   border-radius: 0px;
   background-color: var(--module-bg);
   padding: 6px;
-  margin-left: 2px;
-  margin-right: 2px;
+  /* margin: 2px; */
+  transition: background-color 0.05s linear;
 }
 
-menu > menuitem:first-child {
+menuitem:first-child {
   margin-top: 1px;
   border-radius: 8px 8px 0px 0px;
 }
 
-menu > menuitem:last-child {
+menuitem:last-child {
   margin-bottom: 1px;
   border-radius: 0px 0px 8px 8px;
 }
 
-menu > menuitem:hover {
+menuitem:only-child {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  border-radius: 8px;
+}
+
+menuitem:hover {
   background-color: var(--border-color);
 }
 

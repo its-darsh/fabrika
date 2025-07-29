@@ -1,4 +1,3 @@
-import os
 from fabric import Application
 from components.notifications import NotificationsView
 from components.palestine_flag import PalestineFlag
@@ -23,6 +22,7 @@ from components.common import (
     CenterBox,
     Language,
     Window,
+    Overlay,
     Box,
 )
 
@@ -48,11 +48,26 @@ class StatusBar(Window):
                             name="center-container",
                             spacing=4,
                             orientation="h",
-                            children=ActiveWindow(
-                                name="hyprland-window",
-                                formatter=FormattedString(
-                                    "{truncate(win_title or 'Desktop', 32)}",
-                                    truncate=truncate,
+                            children=Overlay(
+                                child=ActiveWindow(
+                                    name="hyprland-window",
+                                    style_classes="title",
+                                    formatter=FormattedString(
+                                        "{truncate(win_title or 'Desktop', 32)}",
+                                        truncate=truncate,
+                                    ),
+                                ),
+                                overlays=ActiveWindow(
+                                    name="hyprland-window",
+                                    style_classes="class",
+                                    formatter=FormattedString(
+                                        "{truncate(win_class or '', 32)}",
+                                        truncate=truncate,
+                                    ),
+                                    h_align="start",
+                                    v_align="end",
+                                    h_expand=False,
+                                    v_expand=False,
                                 ),
                             ),
                         ),
@@ -178,12 +193,6 @@ if __name__ == "__main__":
         )
     )
 
-    colors_monitor = monitor_file(os.path.expanduser("~/.cache/wal/colors-widgets.css"))
-    colors_monitor.connect("changed", apply_style)
-
-    style_monitor = monitor_file(get_relative_path("./style/"))
-    style_monitor.connect("changed", apply_style)
-
     app = Application(
         "fabrika-shell",
         bar,
@@ -194,6 +203,10 @@ if __name__ == "__main__":
         notifications,
         open_inspector=False,
     )
-    apply_style()
+
+    style_monitor = monitor_file(
+        get_relative_path("./style/"), apply_style, initial_call=True
+    )
+    colors_monitor = monitor_file("~/.cache/wal/colors-widgets.css", apply_style)
 
     app.run()

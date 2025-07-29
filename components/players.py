@@ -1,4 +1,6 @@
 from .common import (
+    Gtk,
+    Gdk,
     Playerctl,
     Fabricator,
     Signal,
@@ -7,6 +9,7 @@ from .common import (
     Label,
     Stack,
     Box,
+    Builder,
     bake_progress_bar,
     bake_icon,
     idle_add,
@@ -105,6 +108,49 @@ class Player(SwipeButton):
             )
         )
 
+        self._controls_menu = Gtk.Menu()
+        self._controls_menu.append(
+            Builder(
+                Gtk.MenuItem(
+                    child=Box(  # type: ignore
+                        orientation="h",
+                        children=(
+                            bake_icon(
+                                icon_name="media-playlist-repeat-symbolic", icon_size=24
+                            ),
+                            Label("???").build(
+                                lambda lbl, _: (
+                                    (
+                                        update := lambda *_: lbl.set_label(
+                                            "Track"
+                                            if (l := player.props.loop_status)
+                                            is Playerctl.LoopStatus.TRACK
+                                            else "Playlist"
+                                            if l is Playerctl.LoopStatus.PLAYLIST
+                                            else "None"
+                                        )
+                                    ),
+                                    update(),
+                                    player.connect("loop-status", update),
+                                )
+                            ),
+                        ),
+                    )
+                )
+            )
+            .connect(
+                "button-press-event",
+                lambda *_: player.set_loop_status(
+                    Playerctl.LoopStatus.NONE
+                    if (l := player.props.loop_status) is Playerctl.LoopStatus.TRACK
+                    else Playerctl.LoopStatus.PLAYLIST
+                    if l is Playerctl.LoopStatus.NONE
+                    else Playerctl.LoopStatus.TRACK
+                ),
+            )
+            .unwrap()
+        )
+
         self.children = Box(
             spacing=8,
             orientation="h",
@@ -150,6 +196,14 @@ class Player(SwipeButton):
         )
         self.connect("swipe", self.on_swipe)
         self.connect("swipe-end", self.on_swipe_end)
+
+    def on_button_release(self, _, event):
+        if event.button == 3:
+            self._controls_menu.show_all()
+            return self._controls_menu.popup_at_widget(
+                self, Gdk.Gravity.NORTH, Gdk.Gravity.SOUTH, event
+            )
+        return super().on_button_release(_, event)
 
     def on_swipe(self, __, dx: float, dy: float, *_):
         # TODO: simplify logic

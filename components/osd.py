@@ -37,13 +37,8 @@ class AudioOSDContainer(Box):
         super().__init__(**kwargs, spacing=12, name="osd-container")
         self.last_handler: int = 0
         self.window = window
-        self.audio = Audio()
-        self.icon = (
-            Image(icon_name="audio-volume-medium-symbolic")
-            .build()
-            .set_pixel_size(26)
-            .unwrap()
-        )
+        self.audio = Audio(controller_name="fabric osd")
+        self.icon = Image(icon_name="audio-volume-medium-symbolic", icon_size=26)
 
         self.scale = AnimatedScale(
             marks=(ScaleMark(value=i) for i in range(1, 100, 10)),
@@ -125,8 +120,6 @@ class OSD(Box):
 
         self.items_container = AudioOSDContainer(orientation="h", window=window)
 
-        self.osd_view_window = Box(
-            name="osd", spacing=8, children=(self.items_container,)
-        )
+        self.osd_view_window = Box(name="osd", spacing=8, children=self.items_container)
 
-        self.children = (self.osd_view_window,)
+        self.children = self.osd_view_window

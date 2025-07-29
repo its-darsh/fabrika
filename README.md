@@ -35,3 +35,18 @@ python config.py
 ## Visual Tour
 
 _Coming soon..._
+
+## The Plan
+
+Fabrika originally started on an early version (0.1) of Fabric. As a result, some of its code may feel inconsistent due to outdated patterns—such as naming conventions, API usage, and structural decisions. Cleaning this up is a key part of the ongoing development.
+
+- [ ] Refactor Fabrika to maintain a consistent code style throughout
+- [ ] Enhance the existing launcher and introduce additional plugins:
+  - [ ] Wolfram Mathematica integration
+  - [ ] Application actions
+  - [ ] Translation utilities
+  - [ ] Quick settings panel
+- [ ] Build a proper notifications center with persistent notifications across reboots
+- [ ] Expand the OSD (On-Screen Display) to include language switches, CapsLock state, brightness levels, etc.
+- [ ] Add a battery indicator
+      _(Currently unneeded as Fabrika is being run only on a desktop machine)_

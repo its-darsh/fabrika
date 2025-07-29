@@ -69,7 +69,7 @@ class DateTime(BasicDateTime):
         self._container = Overlay(child=self._label, overlays=self._timers_container)
 
         for label, interval in {
-            "2 Seconds": 2,  # for testing...
+            # "2 Seconds": 2,  # for testing...
             "1 Minute": 60,
             "5 Minutes": 5 * 60,
             "10 Minutes": 10 * 60,
