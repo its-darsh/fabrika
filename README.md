@@ -50,3 +50,6 @@ Fabrika originally started on an early version (0.1) of Fabric. As a result, som
 - [ ] Expand the OSD (On-Screen Display) to include language switches, CapsLock state, brightness levels, etc.
 - [ ] Add a battery indicator
       _(Currently unneeded as Fabrika is being run only on a desktop machine)_
+
+---
+[![CC BY-NC-ND 4.0](https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc-nd/4.0/)
