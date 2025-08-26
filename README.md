@@ -38,7 +38,7 @@ _Coming soon..._
 
 ## The Plan
 
-Fabrika originally started on an early version (0.1) of Fabric. As a result, some of its code may feel inconsistent due to outdated patterns—such as naming conventions, API usage, and structural decisions. Cleaning this up is a key part of the ongoing development.
+Fabrika originally started on an early version (`v0.0.1`) of Fabric. As a result, some of its code may feel inconsistent due to outdated patterns, such as, naming conventions, API usage and structural decisions. Cleaning this up is a key part of the ongoing development.
 
 - [ ] Refactor Fabrika to maintain a consistent code style throughout
 - [ ] Enhance the existing launcher and introduce additional plugins:
