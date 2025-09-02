@@ -1,40 +1,39 @@
-#pager-view {
+.pager {
+  background-color: var(--background);
   padding: apply(window-padding-large);
   border-radius: apply(border-radius-large);
-  background-color: var(--background);
 }
 
-.pager-corner-container {
-  min-height: 32px;
-  min-width: 32px;
+.pager-client {
+  transition: background-color 0.1s ease-in-out;
 }
 
-.pager-corner {
-  background-color: var(--background);
-  border-radius: unset;
-}
-
-.pager-client-label {
-  font-weight: bolder;
-}
-
-.pager-client-label:not(.active) {
-  color: darker(var(--foreground));
-}
-
-.pager-client,
-.pager-workspace {
-  transition: background-color 0.2s ease-in-out;
-  border: solid 1px transparent;
-  border-radius: calc(apply(border-radius-large) - apply(window-padding-large));
+.pager-workspace-inner {
   background-color: var(--module-bg);
+  border-radius: calc(apply(border-radius-large) - apply(window-padding-large));
+  transition: background-color 0.1s ease-in-out;
 }
 
-.pager-workspace.active {
-  border: solid 1px var(--border-color);
-  background-color: darker(var(--ws-active));
+.pager-workspace-inner.focused {
+  border: solid 1px shade(var(--color5), 1);
+  background-color: darker(darker(var(--ws-active)));
 }
 
-.pager-workspace:hover {
-  background-color: var(--ws-inactive);
+/* the image containing the preview of the client */
+.pager-preview {
+  border-radius: calc(
+    (apply(border-radius-large) - apply(window-padding-large)) - 1px
+  );
+}
+
+.pager-client .overlay-container {
+  box-shadow: inset 0px 0px 0px 1px darker(var(--ws-inactive));
+  border-radius: calc(
+    (apply(border-radius-large) - apply(window-padding-large)) - 2px
+  );
+}
+
+.pager-client.focused .overlay-container {
+  /* inner border */
+  box-shadow: inset 0px 0px 0px 1px shade(var(--color5), 1);
 }

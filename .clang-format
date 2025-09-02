@@ -16,5 +16,5 @@ NamespaceIndentation: All
 
 # Override Google style defaults
 DerivePointerAlignment: false
-PointerAlignment: Right
+PointerAlignment: Left
 

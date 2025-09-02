@@ -10,11 +10,12 @@
   @apply pos-top-pad(1rem, 0.4rem, 0.4rem, 0.4rem);
 }
 
-#osd-container,
-#osd-container > *,
-#osd-container > * > *,
-#osd-container > * > * > * {
-  transition: all 0.5s cubic-bezier(0.1, 1.2, 0.8, 1);
+#osd-container *
+/* #osd-container > * > *, */
+/* #osd-container > * > * > *  */
+/* scale */
+{
+  transition: all 0.4s cubic-bezier(0.15, 0.70, 0, 1);
 }
 
 scale {
@@ -35,19 +36,13 @@ highlight {
 
 scale:hover,
 #osd-container.focused scale {
-  @apply pos-top-min-size(inherit, 21rem);
+  min-width: 21rem;
+  min-height: inherit;
 }
 
 scale:hover trough,
 #osd-container.focused scale trough {
   border-radius: 1.2rem;
-  @apply pos-top-min-size(3rem, inherit);
+  min-width: 21rem;
+  min-height: 3rem;
 }
-
-/* cubic-bezier(0.1, 1.2, 0.8, 1.0); */
-
-/* #osd-container>*>*>* {
-  transition: all 0.5s cubic-bezier(0.1, 1, 0.75, 1);
-  transition: min-height 0.5s cubic-bezier(0.11, 1.36, 0.72, 1.02);
-  transition: min-width 0.5s cubic-bezier(0.15, 0.70, 0, 1);
-} */

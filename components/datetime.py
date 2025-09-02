@@ -1,17 +1,22 @@
 from playsound import playsound
 import multiprocessing
 from .common import (
-    Gtk,
-    Gdk,
     Fabricator,
-    Animator,
+    partial,
     Overlay,
     Widget,
     Label,
     Box,
+    Gtk,
+    Gdk,
+    Animator,
+    cubic_bezier,
     get_relative_path,
 )
 from fabric.widgets.datetime import DateTime as BasicDateTime
+
+
+ALARM_SOUND_PATH = get_relative_path("./audio/alarm.mp3")
 
 
 class TimerProgress(Gtk.ProgressBar, Widget):
@@ -20,13 +25,12 @@ class TimerProgress(Gtk.ProgressBar, Widget):
         Widget.__init__(self, **kwargs)
 
         self._animator = Animator(
-            bezier_curve=(0, 0, 1, 1),
             duration=interval,
-            notify_value=lambda a, *_: self.set_fraction(
-                a.value
-            ),  # TODO: add a way of identifing time left before dingy dongs
+            timing_function=partial(cubic_bezier, 0, 0, 1, 1),
             tick_widget=self,
             on_finished=self.on_timer_done,
+            # TODO: add a way of identifing time left before dingy dongs
+            notify_value=lambda a, *_: self.set_fraction(a.value),
         )
 
         self._animator.play()
@@ -34,7 +38,7 @@ class TimerProgress(Gtk.ProgressBar, Widget):
     @staticmethod  # BLOCKS MAIN THREAD. RUN IN A THREAD.
     def do_play_alarm_sound():
         for _ in range(16):
-            playsound(get_relative_path("./audio/alarm.mp3"), block=True)
+            playsound(ALARM_SOUND_PATH, block=True)
 
     def on_timer_done(self, *_):
         self._animator.pause()
@@ -52,8 +56,8 @@ class TimerProgress(Gtk.ProgressBar, Widget):
             return self.destroy()  # type: ignore
 
         Fabricator(
-            poll_from='dunstify "Timer" --action="stop,Stop"',
             stream=True,
+            poll_from="dunstify 'Timer' --action='stop,Stop'",  # TODO: move to notify-send
             notify_value=on_notification_interaction,
         )
 

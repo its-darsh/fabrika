@@ -1,0 +1,162 @@
+/* TOOLTIPS */
+tooltip {
+  /* that's how you know that's the good stuff */
+  border-radius: apply(border-radius-large);
+  background-repeat: no-repeat;
+  background-image: linear-gradient(
+      to right,
+      var(--module-bg),
+      var(--module-bg)
+    ),
+    linear-gradient(to right, var(--window-bg), var(--window-bg));
+  border: 2px solid var(--window-bg);
+}
+
+tooltip > * {
+  padding: 0px 4px;
+}
+
+/* MENUS */
+menu,
+.menu,
+.context-menu {
+  margin: 40px;
+  padding: 2px;
+
+  border-radius: apply(border-radius-large);
+  background-repeat: no-repeat;
+  background-image: linear-gradient(
+      to right,
+      var(--module-bg),
+      var(--module-bg)
+    ),
+    linear-gradient(to right, var(--window-bg), var(--window-bg));
+  border: 2px solid var(--window-bg);
+}
+
+menu separator,
+.menu separator,
+.context-menu separator {
+  margin: 6px 0;
+}
+
+menu menuitem,
+.menu menuitem,
+.context-menu menuitem {
+  min-height: 16px;
+  min-width: 40px;
+  padding: 4px 6px;
+  text-shadow: none;
+  font-weight: normal;
+  border-radius: calc(apply(border-radius-large) - 2px);
+  transition: background-color 0.1s linear;
+}
+
+menu menuitem:hover,
+.menu menuitem:hover,
+.context-menu menuitem:hover {
+  color: var(--foreground);
+  background-color: alpha(currentColor, 0.1);
+}
+
+menu menuitem:disabled,
+.menu menuitem:disabled,
+.context-menu menuitem:disabled {
+  color: mix(var(--foreground), var(--window-bg), 0.5);
+}
+
+menu menuitem arrow,
+.menu menuitem arrow,
+.context-menu menuitem arrow {
+  min-height: 16px;
+  min-width: 16px;
+}
+
+menu menuitem arrow:dir(ltr),
+.menu menuitem arrow:dir(ltr),
+.context-menu menuitem arrow:dir(ltr) {
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic");
+  margin-left: 10px;
+}
+
+menu menuitem arrow:dir(rtl),
+.menu menuitem arrow:dir(rtl),
+.context-menu menuitem arrow:dir(rtl) {
+  -gtk-icon-source: -gtk-icontheme("pan-end-symbolic-rtl");
+  margin-right: 10px;
+}
+
+menu menuitem label:dir(rtl),
+menu menuitem label:dir(ltr),
+.menu menuitem label:dir(rtl),
+.menu menuitem label:dir(ltr),
+.context-menu menuitem label:dir(rtl),
+.context-menu menuitem label:dir(ltr) {
+  color: inherit;
+}
+
+menu > arrow,
+.menu > arrow,
+.context-menu > arrow {
+  background-color: var(--window-bg);
+  -gtk-icon-shadow: none;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 4px;
+  border-radius: unset;
+}
+
+menu > arrow.top,
+.menu > arrow.top,
+.context-menu > arrow.top {
+  margin-top: -4px;
+  border-bottom: 1px solid mix(var(--foreground), var(--window-bg), 0.9);
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  -gtk-icon-source: -gtk-icontheme("pan-up-symbolic");
+}
+
+menu > arrow.bottom,
+.menu > arrow.bottom,
+.context-menu > arrow.bottom {
+  margin-top: 8px;
+  margin-bottom: -12px;
+  border-bottom: 1px solid mix(var(--foreground), var(--window-bg), 0.9);
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  -gtk-icon-source: -gtk-icontheme("pan-down-symbolic");
+}
+
+menu > arrow:hover,
+.menu > arrow:hover,
+.context-menu > arrow:hover {
+  background-color: mix(var(--foreground), var(--window-bg), 0.9);
+}
+
+menu > arrow:disabled,
+.menu > arrow:disabled,
+.context-menu > arrow:disabled {
+  color: transparent;
+  background-color: transparent;
+  border-color: transparent;
+}
+
+menuitem accelerator {
+  color: alpha(currentColor, 0.55);
+}
+
+menuitem check,
+menuitem radio {
+  min-height: 16px;
+  min-width: 16px;
+}
+
+menuitem check:dir(ltr),
+menuitem radio:dir(ltr) {
+  margin-right: 8px;
+}
+
+menuitem check:dir(rtl),
+menuitem radio:dir(rtl) {
+  margin-left: 8px;
+}

@@ -1,21 +1,10 @@
-"""
-example configuration shows how to make a simple
-desktop applications launcher, this example doesn't involve
-any styling (except a couple of basic style properties)
-
-
-the purpose of this configuration is to show to to use
-the given utils and mainly how using lazy executors might
-make the configuration way more faster than it's supposed to be
-"""
-
 import re
 import urllib.parse
 from collections.abc import Iterator
 from .common import (
     os,
-    mimetypes,
     fuzz,
+    mimetypes,
     fuzzprocess,
     Signal,
     Box,
@@ -24,14 +13,15 @@ from .common import (
     Image,
     Entry,
     DesktopApp,
+    ClippingBox,
     AnimatedScrollable,
-    invoke_repeater,
+    add_style_class_lazy,
+    get_children_height_limit,
     get_desktop_applications,
     exec_shell_command_async,
     exec_shell_command,
-    idle_add,
     remove_handler,
-    get_children_height_limit,
+    idle_add,
     GLib,
     Service,
 )
@@ -280,7 +270,14 @@ class Launcher(Box):
             visible=False,  # no need to have it visible by default
         )
 
-        self.children = self.header, self.scrolled_window
+        self.scrolled_clip = ClippingBox(
+            style_classes="launcher-scroll-clip",
+            children=self.scrolled_window,
+            visible=False,
+        )
+        self.scrolled_window.connect("unmap", lambda: self.scrolled_clip.hide())
+
+        self.children = self.header, self.scrolled_clip
 
     def on_entry_changed(self, entry: Entry, *_):
         self.launch_handler.stop()
@@ -318,6 +315,7 @@ class Launcher(Box):
             self.scrolled_window.animate_size(0)
             return False
 
+        self.scrolled_clip.show()
         self.scrolled_window.show()
         self.scrolled_window.animate_size(new_hight)
 
@@ -332,9 +330,7 @@ class Launcher(Box):
         if len(self.viewport.children) < 1:
             self.remove_style_class("overshoot")
         elif "overshoot" not in self.style_classes:
-            invoke_repeater(
-                50, lambda: self.add_style_class("overshoot"), initial_call=False
-            )
+            add_style_class_lazy(self, "overshoot")
         self.post_viewport_children()
         return False
 
@@ -354,6 +350,6 @@ class Launcher(Box):
                 entry.set_text("")
                 self.launched()
                 return exec_shell_command_async(
-                    f"xdg-open {('https://' + query_data[1]) if not query_data[1].startswith("http") else query_data[1]}"
+                    f"xdg-open {('https://' + query_data[1]) if not query_data[1].startswith('http') else query_data[1]}"
                 )
         return

@@ -32,6 +32,9 @@
   border-radius: apply(border-radius-large);
   background-color: var(--background);
 }
+.launcher-scroll-clip {
+  border-radius: calc(apply(border-radius-large) - apply(window-padding-large));
+}
 
 .app-search-entry {
   color: var(--foreground);
@@ -70,7 +73,7 @@
 
 .app-slot:focus {
   border-color: var(--border-color);
-  background-color: var(--ws-active);
+  background-color: darker(darker(var(--ws-active)));
 }
 
 .app-slot.shine {

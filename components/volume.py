@@ -1,27 +1,19 @@
-from .common import (
-    Box,
-    Audio,
-    EventBox,
-    bake_icon,
-    bake_progress_bar,
-)
+from .common import Audio, EventBox, bake_icon, bake_progress_bar
 
 
-class Volume(Box):
+class Volume(EventBox):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(events="scroll", on_scroll_event=self.on_scroll, **kwargs)
 
-        self.volume_icon = bake_icon(icon_name="audio-volume-high-symbolic", icon_size=12)
+        self.volume_icon = bake_icon(
+            icon_name="audio-volume-high-symbolic", icon_size=12
+        )
         self.progress_bar = bake_progress_bar(
             style_classes="volume", child=self.volume_icon
         )
         self.audio = Audio(notify_speaker=self.on_speaker_changed)
 
-        self.children = EventBox(
-            events="scroll",
-            child=self.progress_bar,
-            on_scroll_event=self.on_scroll,
-        )
+        self.children = self.progress_bar
 
     def on_scroll(self, _, event):
         match event.direction:

@@ -1,5 +1,6 @@
 #player {
   background-color: var(--module-bg);
+  /* background-image: url(""); */
 }
 
 #players-container {

@@ -1,34 +1,58 @@
 from .common import (
     Box,
-    CenterBox,
     Label,
-    CustomImage,
-    Overlay,
     Button,
-    AnimatedScrollable,
-    add_style_class_lazy,
-    get_children_height_limit,
-    invoke_repeater,
-    bake_corner,
-    cast,
+    FlowBox,
+    Overlay,
+    Revealer,
+    Image,
+    ClippingBox,
     Notification,
     Notifications,
+    AnimatedScrollable,
+    Gtk,
+    GdkPixbuf,
+    bake_corner,
+    cast,
+    idle_add,
+    invoke_repeater,
+    add_style_class_lazy,
+    get_children_height_limit,
 )
-from gi.repository import GdkPixbuf
 
 NOTIFICATION_WIDTH = 360
 NOTIFICATION_IMAGE_SIZE = 64
-NOTIFICATION_TIMEOUT = 16 * 1000  # 10 seconds
+NOTIFICATION_TIMEOUT = 10 * 1000  # 10 seconds
+NOTIFICATION_BUTTONS_PER_ROW = 2
+NOTIFICATION_REVEALER_DURATION = 400  # ms
 NOTIFICATIONS_CORNERS_SIZE = 16
+
+DEFAULT_ICONS_THEME = Gtk.IconTheme.get_default()
+
+
+class LimitBox(Box):
+    """A hack for replicating CSS's `max-*` properties"""
+
+    def __init__(self, max_width: int, max_height: int, **kwargs):
+        super().__init__(**kwargs)
+        self.max_width: int = max_width
+        self.max_height: int = max_height
+
+    def do_size_allocate(self, allocation):
+        if self.max_width >= 0:
+            allocation.width = min(self.max_width, allocation.width)
+        if self.max_height >= 0:
+            allocation.height = min(self.max_height, allocation.height)
+        return Box.do_size_allocate(self, allocation)
 
 
 class NotificationItem(Box):
     def __init__(self, notification: Notification, **kwargs):
         super().__init__(
-            size=(NOTIFICATION_WIDTH, -1),
             name="notification",
             spacing=8,
             orientation="v",
+            size=(NOTIFICATION_WIDTH, -1),
             **kwargs,
         )
 
@@ -38,19 +62,27 @@ class NotificationItem(Box):
 
         if image_pixbuf := self.notification.image_pixbuf:
             body_container.add(
-                CustomImage(
-                    pixbuf=image_pixbuf.scale_simple(
-                        NOTIFICATION_IMAGE_SIZE,
-                        NOTIFICATION_IMAGE_SIZE,
-                        GdkPixbuf.InterpType.BILINEAR,
+                ClippingBox(
+                    children=(
+                        Image(
+                            pixbuf=image_pixbuf.scale_simple(
+                                NOTIFICATION_IMAGE_SIZE,
+                                NOTIFICATION_IMAGE_SIZE,
+                                GdkPixbuf.InterpType.BILINEAR,
+                            ),
+                            v_align="fill",
+                            h_align="fill",
+                            v_expand=True,
+                            h_expand=True,
+                        )
                     ),
-                    v_expand=False,
-                    h_expand=False,
                     v_align="start",
                     h_align="start",
+                    v_expand=False,
+                    h_expand=False,
                 )
             )
-
+        print()
         body_container.add(
             Box(
                 spacing=4,
@@ -63,21 +95,31 @@ class NotificationItem(Box):
                             Overlay(
                                 child=Label(
                                     label=self.notification.summary,
+                                    style_classes="summary",
                                     ellipsization="middle",
                                 )
                                 .build()
-                                .set_style_classes("summary")
+                                .set_xalign(0.0)
                                 .unwrap(),
                                 # notification's source icon
-                                overlays=CustomImage(
-                                    icon_name=(
-                                        self.notification.app_icon
-                                        or self.notification.app_name
-                                    ),
-                                    icon_size=12,
-                                    v_align="start",
-                                    h_align="start",
-                                ),
+                                overlays=[
+                                    Image(
+                                        # render app's icon if found
+                                        pixbuf=icn.load_icon()
+                                        if (
+                                            icn := DEFAULT_ICONS_THEME.lookup_icon(
+                                                self.notification.app_icon
+                                                or self.notification.app_name,
+                                                12,
+                                                Gtk.IconLookupFlags.FORCE_SIZE,
+                                            )
+                                        )
+                                        is not None
+                                        else None,
+                                        v_align="start",
+                                        h_align="start",
+                                    )
+                                ],
                             ),
                         ],
                         h_expand=True,
@@ -88,7 +130,7 @@ class NotificationItem(Box):
                     .build(
                         lambda box, _: box.pack_end(
                             Button(
-                                image=CustomImage(
+                                image=Image(
                                     icon_name="close-symbolic",
                                     icon_size=18,
                                 ),
@@ -112,7 +154,10 @@ class NotificationItem(Box):
                         line_wrap="word-char",
                         v_align="start",
                         h_align="start",
-                    ),
+                    )
+                    .build()
+                    .set_xalign(0.0)
+                    .unwrap(),
                 ],
                 h_expand=True,
                 v_expand=True,
@@ -123,10 +168,10 @@ class NotificationItem(Box):
 
         if actions := self.notification.actions:
             self.add(
-                Box(
+                FlowBox(
+                    spacing=4,
                     row_spacing=4,
                     column_spacing=4,
-                    spacing=4,
                     orientation="h",
                     v_expand=True,
                     h_expand=True,
@@ -145,30 +190,28 @@ class NotificationItem(Box):
                         for action in actions
                     ],
                 )
+                .build()
+                .set_max_children_per_line(
+                    min(len(actions), NOTIFICATION_BUTTONS_PER_ROW)
+                )
+                .unwrap()
             )
-
-        # destroy this widget once the notification is closed
-        self.notification.connect(
-            "closed",
-            lambda *_: (
-                parent.remove(self) if (parent := self.get_parent()) else None,  # type: ignore
-                self.destroy(),
-            ),
-        )
 
         # automatically close the notification after the timeout period
         invoke_repeater(
             NOTIFICATION_TIMEOUT,
-            lambda: self.notification.close("expired"),
+            self.notification.close,
+            "expired",
             initial_call=False,
         )
 
         add_style_class_lazy(self, "shine")
 
 
+# TODO: add the whole thing to a revealer that reveals to the left
 class NotificationsView(Box):
     def __init__(self, **kwargs):
-        super().__init__(visible=False, **kwargs)
+        super().__init__(orientation="v", visible=False, **kwargs)
 
         self.viewport = Box(spacing=4, orientation="v")
 
@@ -185,49 +228,83 @@ class NotificationsView(Box):
         self.overall_container = Box(
             name="notifications",
             orientation="v",
-            children=self.scrolled_window,
+            children=ClippingBox(
+                style_classes="notifications-clip", children=self.scrolled_window
+            ),
             h_expand=True,
             v_expand=True,
         )
 
         self.notifications = Notifications(
-            on_notification_added=lambda _, nid: (
-                notif := cast(Notification, self.notifications.notifications.get(nid)),
-                self.viewport.add(nfi := NotificationItem(notif)),
-                self.viewport.reorder_child(nfi, 0),
+            on_notification_added=lambda _, notification_id: (
+                notification := cast(
+                    Notification, self.notifications.notifications.get(notification_id)
+                ),
+                self.viewport.add(
+                    item_rev := Revealer(
+                        child=NotificationItem(notification),
+                        reveal_child=False,
+                        transition_type="slide-down",
+                        transition_duration=NOTIFICATION_REVEALER_DURATION,
+                    )
+                ),
+                self.viewport.reorder_child(item_rev, 0),
+                # ready to show
+                item_rev.reveal(),
+                notification.closed.connect(
+                    lambda: (
+                        item_rev.connect(
+                            "notify::child-revealed",
+                            lambda: item_rev.destroy()
+                            if not item_rev.fully_revealed
+                            else None,
+                        ),
+                        idle_add(item_rev.unreveal),
+                    )
+                ),
             ),
         )
 
+        # i mean, it's just chef's kiss
         self.children = (
             Box(
-                orientation="v",
-                children=Box(
-                    children=bake_corner(
-                        orientation="top-right",
-                        v_expand=True,
+                orientation="h",
+                children=[
+                    Box(
+                        orientation="v",
+                        spacing=NOTIFICATIONS_CORNERS_SIZE,
+                        children=[
+                            LimitBox(
+                                max_width=NOTIFICATIONS_CORNERS_SIZE,
+                                max_height=NOTIFICATIONS_CORNERS_SIZE,
+                                children=bake_corner(
+                                    orientation="top-right",
+                                    v_expand=True,
+                                    h_expand=True,
+                                ),
+                                v_expand=True,
+                                size=(NOTIFICATIONS_CORNERS_SIZE, -1),
+                            ),
+                            Box(
+                                h_expand=True,
+                                v_expand=True,
+                            ),
+                        ],
                         h_expand=True,
+                        v_expand=True,
                     ),
-                    size=NOTIFICATIONS_CORNERS_SIZE,
-                ),
+                    self.overall_container,
+                ],
             ),
             Box(
-                orientation="v",
-                children=[
-                    self.overall_container,
-                    CenterBox(
-                        orientation="h",
-                        end_children=Box(
-                            children=bake_corner(
-                                orientation="top-right",
-                                v_expand=True,
-                                h_expand=True,
-                            ),
-                            size=NOTIFICATIONS_CORNERS_SIZE,
-                            h_align="end",
-                            v_align="end",
-                        ),
-                    ),
-                ],
+                children=bake_corner(
+                    orientation="top-right",
+                    v_expand=True,
+                    h_expand=True,
+                ),
+                size=NOTIFICATIONS_CORNERS_SIZE,
+                h_align="end",
+                v_align="end",
             ),
         )
 
@@ -238,7 +315,15 @@ class NotificationsView(Box):
     def on_children_change(self, *_):
         # for fuck's sake don't repeat the same mistake
         # we have two containers to work with
-        self.scrolled_window.animate_size(get_children_height_limit(self.viewport, 4))
+        self.scrolled_window.animate_size(
+            get_children_height_limit(
+                self.viewport,
+                4,
+                lambda rev: (
+                    cast(Revealer, rev).get_child().get_preferred_size().minimum_size  # type: ignore
+                ),
+            )
+        )
 
         return self.hide() if not self.viewport.children else self.show()
 
@@ -248,8 +333,4 @@ class NotificationsView(Box):
         if not self.get_visible():
             return
 
-        return invoke_repeater(
-            50,
-            lambda: self.viewport.add_style_class("popped"),
-            initial_call=False,
-        )
+        return add_style_class_lazy(self.viewport, "popped")

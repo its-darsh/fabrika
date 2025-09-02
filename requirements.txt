@@ -1,6 +1,4 @@
 thefuzz
-moderngl
-pywayland
 fabric @ git+https://github.com/Fabric-Development/fabric
 playsound==1.2.2
 requests

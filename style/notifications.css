@@ -1,10 +1,6 @@
 @keyframes notifications-pop {
   50% {
-    /* min-width: 30rem; */
     padding-left: 0.8rem;
-    /* padding-bottom: 0.8rem; */
-    /* padding-right: 1.8rem; */
-    /* background-image: var(--module-bg); */
   }
 
   100% {
@@ -39,14 +35,18 @@
   padding: apply(window-padding-large);
   background-color: var(--window-bg);
 
-  border-radius: 0rem;
   /* get rid of default border radius set globally */
+  border-radius: 0rem;
   border-bottom-left-radius: apply(border-radius-large);
 }
 
 #notifications.popped {
   animation: 1s cubic-bezier(0.41, 0.42, 0.03, 0.9) notifications-pop;
   padding: apply(window-padding-large);
+}
+
+.notifications-clip {
+  border-radius: calc(apply(border-radius-large) - apply(window-padding-large));
 }
 
 #notification {

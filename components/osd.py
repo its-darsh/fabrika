@@ -3,7 +3,8 @@ from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.scale import Scale, ScaleMark
 from fabric.widgets.wayland import WaylandWindow as Window
-from components.services.animator import Animator
+from .common import partial
+from components.snippets.animator import Animator, cubic_bezier
 from fabric.utils import invoke_repeater, remove_handler
 
 
@@ -12,12 +13,12 @@ class AnimatedScale(Scale):
         super().__init__(**kwargs)
         self.animator = (
             Animator(
-                bezier_curve=(0.34, 1.56, 0.64, 1.0),
                 duration=0.8,
+                timing_function=partial(cubic_bezier, 0.34, 1.56, 0.64, 1.0),
                 min_value=self.min_value,
                 max_value=self.value,
                 tick_widget=self,
-                notify_value=lambda p, *_: self.set_value(p.value),
+                notify_value=lambda anim: self.set_value(anim.value),
             )
             .build()
             .play()
@@ -37,7 +38,7 @@ class AudioOSDContainer(Box):
         super().__init__(**kwargs, spacing=12, name="osd-container")
         self.last_handler: int = 0
         self.window = window
-        self.audio = Audio(controller_name="fabric osd")
+        self.audio = Audio(controller_name="fabric-osd")
         self.icon = Image(icon_name="audio-volume-medium-symbolic", icon_size=26)
 
         self.scale = AnimatedScale(
@@ -116,10 +117,6 @@ class AudioOSDContainer(Box):
 
 class OSD(Box):
     def __init__(self, window: Window, **kwargs):
-        super().__init__(orientation="h", **kwargs)
+        super().__init__(orientation="h", name="osd", **kwargs)
 
-        self.items_container = AudioOSDContainer(orientation="h", window=window)
-
-        self.osd_view_window = Box(name="osd", spacing=8, children=self.items_container)
-
-        self.children = self.osd_view_window
+        self.children = AudioOSDContainer(orientation="h", window=window)

@@ -1,21 +1,28 @@
+import gi
 import json
-from typing import TypedDict
+import random
+from typing import TypedDict, Callable, cast
 from fabric.hyprland.widgets import get_hyprland_connection
 from .common import (
     Gtk,
-    Overlay,
+    GLib,
+    GdkPixbuf,
+    Box,
     Image,
     Label,
     Fixed,
-    Box,
-    Corner,
-    cast,
+    Overlay,
+    ClippingBox,
+    logger,
+    invoke_repeater,
 )
 
+gi.require_version("Glace", "0.1")
+from gi.repository import Glace
 
-class PagerClient(TypedDict):
+
+class HyprlandClient(TypedDict):
     title: str
-    # class: str
     initialClass: str
     initialTitle: str
     at: list[int]
@@ -37,206 +44,284 @@ class PagerClient(TypedDict):
     focusHistoryID: int
 
 
-class PagerWorkspace(TypedDict):
-    id: int
-    size: list[int]
-    clients: list[PagerClient]
+class TickChoker:
+    def __init__(
+        self, widget: Gtk.Widget, target_fps: int, callback: Callable, *callback_data
+    ):
+        self.widget: Gtk.Widget = widget
+        self.callback: Callable = callback
+        self.callback_data = callback_data
 
+        self.period: float = 1.0 / target_fps
+        self.offset_time: float = random.uniform(0, self.period)
+        self.last_tick_time: float = 0.0
 
-class Pager(Box):
-    def __init__(self, scale_ratio: float, icon_size: int = 28, **kwargs):
-        super().__init__(orientation="h", **kwargs)
-        self.radius = 32
+        self.handler_id = 0
 
-        def bake_corner(**kwargs):
-            return Corner(
-                name="corner",
-                size=self.radius,
-                style_classes="pager-corner",
-                **kwargs,
-            )
+        self.widget.connect("map", self.on_map)
+        self.widget.connect("unmap", self.on_unmap)
 
-        def bake_corner_box(**kwargs):
-            return (
-                Box(
-                    # style=f"margin-right: {int(self.radius)}px",
-                    style_classes="pager-corner-container",
-                    children=bake_corner(**kwargs),
-                )
-                # .build()
-                # .set_size_request(-1, self.radius)
-                # .unwrap()
-            )
+        self.wireup()
 
-        self.connection = get_hyprland_connection()
-        self.scale_ratio = scale_ratio
-
-        self.icon_theme = Gtk.IconTheme.get_default()
-        self.icon_names = cast(list[str], self.icon_theme.list_icons())
-        self.icon_size = icon_size
-
-        self.clients_box = Box(
-            name="pager-view",
-            spacing=4,
-            orientation="h",
+    def on_map(self, _):
+        # don't stress hyprland by capturing and moving a window at the same time
+        return invoke_repeater(
+            round(self.offset_time * 500), self.wireup, initial_call=False
         )
 
-        self.children = self.clients_box
+    def on_unmap(self, _):
+        return self.stop()
 
-        # all aboard...
-        if self.connection.ready:
-            self.render(None)
-        else:
-            self.connection.connect("event::ready", self.render)
+    def do_handle_tick(self, *_):
+        if not self.widget.get_mapped():
+            return False
 
-        for evnt in ("activewindow", "changefloatingmode"):
-            self.connection.connect("event::" + evnt, self.render)
+        now = GLib.get_monotonic_time() / 1_000_000
+        if self.last_tick_time == 0.0:
+            self.last_tick_time = now + self.offset_time
 
-    def bake_window_icon(
-        self,
-        window_class: str,
-        fallback_icon: str = "image-missing",
-        **kwargs,
-    ) -> Image:
-        # no need to edit this
-        def _baker(icon_name: str | None, **kwgs):
-            try:
-                pixbuf = self.icon_theme.load_icon(
-                    icon_name or fallback_icon,
-                    self.icon_size,
-                    Gtk.IconLookupFlags.FORCE_SIZE,  # type: ignore
-                )
-            except Exception:
-                pixbuf = self.icon_theme.load_icon(
-                    fallback_icon,
-                    self.icon_size,
-                    Gtk.IconLookupFlags.FORCE_SIZE,  # type: ignore
-                )
-            return Image(
-                pixbuf=pixbuf,
-                size=self.icon_size,
-                **(kwgs | kwargs),
-            )
+        if now - self.last_tick_time >= self.period:
+            self.last_tick_time = now
+            self.callback(*self.callback_data)
 
-        return _baker(window_class.lower())
+        return True
 
-    def fetch_data(self):
-        # note: Hyprland window's anchor is not a center point
-        # (X, Y) = (0, 0)
-        #            -> *______
-        #               | aaaa |
-        #               | ◕‿‿◕ |
-        #               |______|
+    def wireup(self):
+        self.stop()
+        self.handler_id = self.widget.add_tick_callback(self.do_handle_tick)
+        return
 
-        workspaces_map: dict[int, PagerWorkspace] = {}
-        clients: list[PagerClient] = json.loads(
-            self.connection.send_command("j/clients").reply.decode()
+    def stop(self):
+        if self.handler_id:
+            self.widget.remove_tick_callback(self.handler_id)
+            self.handler_id = 0
+        return
+
+
+class PagerClientView(Box):
+    def __init__(
+        self, client: Glace.Client, manager: Glace.Manager, scale: float = 0.1, **kwargs
+    ):
+        super().__init__(
+            style_classes="pager-client", v_align="center", h_align="center", **kwargs
         )
-        for client in clients:
-            client["size"] = [
-                round(client["size"][0] / self.scale_ratio),
-                round(client["size"][1] / self.scale_ratio),
-            ]
+        self.client = client
+        self.manager = manager
+        self.scale = scale
 
-            client["at"] = [
-                round(client["at"][0] / self.scale_ratio),
-                round(client["at"][1] / self.scale_ratio),
-            ]
+        self.image = Image(
+            icon_name="image-missing",
+            h_expand=True,
+            v_expand=True,
+        )
+        self.overlay_container = Box(
+            h_align="fill",
+            v_align="fill",
+            h_expand=True,
+            v_expand=True,
+            style_classes="overlay-container",
+        )
 
-            client_workspace = cast(int, client["workspace"]["id"])
+        self.children = Overlay(
+            child=ClippingBox(
+                style_classes="pager-preview",
+                children=self.image,
+                h_expand=True,
+                v_expand=True,
+            ),
+            overlays=self.overlay_container,
+        )
 
-            workspace_root = workspaces_map.get(
-                client_workspace,
-                PagerWorkspace(
-                    {
-                        "id": client_workspace,
-                        "size": self.get_workspace_size(client_workspace),
-                        "clients": [],
-                    }
-                ),
-            )
+        self.client.connect("close", self.do_handle_close)
+        self.client.connect("notify::activated", self.do_update_focus_style)
 
-            workspace_root["clients"].append(client)
+        self.tick_handler = TickChoker(
+            self,
+            2,
+            self.manager.capture_client,
+            self.client,
+            False,
+            self.do_handle_capture,
+        )
 
-            workspaces_map[client_workspace] = workspace_root
+        self.show()
 
-        return workspaces_map
+    def update_for_data(self, hyprland_data: HyprlandClient):
+        self.set_size_request(
+            *(round(val * self.scale) for val in hyprland_data["size"])
+        )
 
-    def fetch_data_sorted(self) -> dict[int, PagerWorkspace]:
-        unsorted_data = self.fetch_data()
-        sorted_data: dict[int, PagerWorkspace] = {}
-        for ws_id in sorted(unsorted_data):
-            sorted_data[ws_id] = unsorted_data[ws_id]
-        return sorted_data
+        return self.do_update_focus_style()
 
-    def get_active_workspace(self) -> int:
-        return json.loads(
-            self.connection.send_command("j/activeworkspace").reply.decode()
-        )["id"]
+    def do_update_focus_style(self, *_):
+        if self.client.get_activated():
+            return self.add_style_class("focused")
+        return self.remove_style_class("focused")
 
-    def get_workspace_size(self, workspace_id: int) -> list[int]:
-        workspace_monitor = [
-            m
-            for m in json.loads(
-                self.connection.send_command("j/monitors").reply.decode()
-            )
-            if m["name"]
-            == [
-                ws
-                for ws in json.loads(
-                    self.connection.send_command("j/workspaces").reply.decode()
-                )
-                if int(ws["id"]) == workspace_id
-            ][0]["monitor"]
-        ][0]
-
-        return [
-            round(workspace_monitor["width"] / self.scale_ratio),
-            round(workspace_monitor["height"] / self.scale_ratio),
-        ]
-
-    def render(self, *_):
-        if not self.is_visible():
+    def do_handle_capture(self, pixbuf: GdkPixbuf.Pixbuf | None):
+        if not pixbuf:
             return
+        return self.image.set_from_pixbuf(
+            pixbuf.scale_simple(
+                round(pixbuf.get_width() * self.scale),
+                round(pixbuf.get_height() * self.scale),
+                GdkPixbuf.InterpType.BILINEAR,
+            )
+        )
 
-        self.clients_box.children = []
-        for workspace_id, workspace in self.fetch_data_sorted().items():
-            workspace_label = Label(
+    def do_handle_close(self, *_):
+        self.tick_handler.stop()
+        if not (pager := cast(Pager, self.get_ancestor(Pager))):
+            return
+        return pager.remove_client_view(self.client.get_hyprland_address())
+
+
+class PagerWorkspaceView(Overlay):
+    def __init__(self, workspace_id: int, workspace_data: dict, scale: float, **kwargs):
+        super().__init__(style_classes="pager-workspace", **kwargs)
+        self.workspace_id = workspace_id
+        self.scale = scale
+
+        self.background = Box(
+            style_classes="pager-workspace-inner",
+            children=Label(
                 label=str(workspace_id),
                 h_align="center",
                 v_align="center",
                 h_expand=True,
                 v_expand=True,
-                style_classes="pager-client-label",
-            )
-            workspace_background = Box(
-                children=workspace_label,
-                size=workspace["size"],
-                style_classes="pager-workspace",
-            )
-            workspace_overlay = Overlay(child=workspace_background)
-            if self.get_active_workspace() == workspace_id:
-                workspace_background.add_style_class("active")
-                workspace_label.add_style_class("active")
+                style_classes="pager-workspace-num",
+            ),
+        )
 
-            for client in workspace["clients"]:
-                client_box = Box(
-                    children=self.bake_window_icon(
-                        client["initialClass"],
-                        h_align="center",
-                        v_align="center",
-                        h_expand=True,
-                        v_expand=True,
-                    ),
-                    tooltip_text=client["title"],
-                    size=client["size"],
-                    style_classes="pager-client",
-                )
+        self.client_container = Fixed()
+        self.children = self.background
+        self.overlays = self.client_container
 
-                fixed = Fixed(size=workspace["size"])
-                fixed.put(client_box, *client["at"])
-                workspace_overlay.add_overlay(fixed)
+        self.update_state(workspace_data)
 
-            self.clients_box.add(
-                Box(orientation="h", children=workspace_overlay),
+    def update_state(self, workspace_data: dict):
+        self.set_size_request(
+            *(
+                round(workspace_data.get("monitor", {}).get(dim, 0) * self.scale)
+                for dim in ["width", "height"]
             )
+        )
+        if workspace_data.get("active", False):
+            return self.background.add_style_class("focused")
+        return self.background.remove_style_class("focused")
+
+    def add_client(self, client_view: PagerClientView, x: int, y: int):
+        if client_view.get_parent() is self.client_container:
+            return self.client_container.move(client_view, x, y)
+        if old_parent := client_view.get_parent():
+            cast(Gtk.Container, old_parent).remove(client_view)
+        return self.client_container.put(client_view, x, y)
+
+    def remove_client(self, client_view: PagerClientView):
+        # if client_view.get_parent() is self.client_container: ...
+        return self.client_container.remove(client_view)
+
+
+class Pager(Box):
+    def __init__(self, scale: float = 0.11, **kwargs):
+        super().__init__(orientation="h", style_classes="pager", spacing=4, **kwargs)
+        self.scale = scale
+        self.connection = get_hyprland_connection()
+
+        self.clients: dict[int, PagerClientView] = {}
+        self.workspaces: dict[int, PagerWorkspaceView] = {}
+
+        self.manager = Glace.Manager(on_client_added=self.on_client_added)
+        self.connection.connect("event", self.do_sync_state)
+        self.show()
+
+    def on_client_added(self, _, client: Glace.Client):
+        return client.connect("notify::hyprland-address", self.on_client_ready)
+
+    def on_client_ready(self, client: Glace.Client, _):
+        if not (address := client.get_hyprland_address()) or address in self.clients:
+            return
+
+        self.clients[address] = PagerClientView(client, self.manager, self.scale)
+
+        return self.do_sync_state()
+
+    def remove_client_view(self, address: int):
+        if client_view := self.clients.pop(address, None):
+            client_view.destroy()
+            if (parent := client_view.get_parent()) is not None:
+                parent.remove(client_view)
+
+    def do_sync_state(self, *_):
+        if not self.connection.ready:
+            return
+
+        try:
+            hypr_clients: list[HyprlandClient] = json.loads(
+                self.connection.send_command("j/clients").reply.decode()
+            )
+            hypr_workspaces: list[dict] = json.loads(
+                self.connection.send_command("j/workspaces").reply.decode()
+            )
+            hypr_monitors: list[dict] = json.loads(
+                self.connection.send_command("j/monitors").reply.decode()
+            )
+            active_workspace_id: int = json.loads(
+                self.connection.send_command("j/activeworkspace").reply.decode()
+            )["id"]
+        except (json.JSONDecodeError, KeyError) as e:
+            return logger.error(f"[Pager] Failed to parse Hyprland IPC data: {e}")
+
+        monitors_map = {m["name"]: m for m in hypr_monitors}
+        hypr_workspace_ids = set()
+        for ws_data in sorted(hypr_workspaces, key=lambda w: w["id"]):
+            ws_id = ws_data["id"]
+            hypr_workspace_ids.add(ws_id)
+
+            ws_data["monitor"] = monitors_map.get(ws_data["monitor"], {})
+            ws_data["active"] = ws_id == active_workspace_id
+
+            if ws_id in self.workspaces:
+                self.workspaces[ws_id].update_state(ws_data)
+                continue
+
+            workspace_view = PagerWorkspaceView(ws_id, ws_data, self.scale)
+            self.workspaces[ws_id] = workspace_view
+            self.add(workspace_view)
+            self.reorder_child(workspace_view, ws_id)
+
+        # old workspaces
+        stale_workspace_ids = set(self.workspaces.keys()) - hypr_workspace_ids
+        for ws_id in stale_workspace_ids:
+            if not (old_ws_view := self.workspaces.pop(ws_id, None)):
+                continue
+            old_ws_view.destroy()
+
+        # clients
+        client_addresses = set()
+        for client_data in hypr_clients:
+            address = int(client_data["address"], 16)
+            client_addresses.add(address)
+
+            client_view = self.clients.get(address)
+            if not client_view:
+                continue  # this no good
+
+            client_view.update_for_data(client_data)
+
+            workspace_id = client_data["workspace"]["id"]
+            workspace_view = self.workspaces.get(workspace_id)
+            if not workspace_view:
+                continue  # orphan client.. how?
+
+            workspace_view.add_client(
+                client_view, *(round(val * self.scale) for val in client_data["at"])
+            )
+
+        # old clients
+        stale_client_addresses = set(self.clients.keys()) - client_addresses
+        for address in stale_client_addresses:
+            self.remove_client_view(address)
+
+        return True

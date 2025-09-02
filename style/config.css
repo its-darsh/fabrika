@@ -4,6 +4,7 @@
 @import url("./palestine-flag.css");
 @import url("./notifications.css");
 @import url("./dashboard.css");
+@import url("./surfaces.css");
 @import url("./launcher.css");
 @import url("./players.css");
 @import url("./pager.css");
@@ -62,13 +63,10 @@ button {
   padding: 0px 8px;
 }
 
-#hyprland-window.title>* {
-  /* margin-top: 4px; */
-}
-
-#hyprland-window.class{
+#hyprland-window.class {
   margin: -2px 8px;
 }
+
 #hyprland-window.class > * {
   font-size: apply(font-size-extra-small);
   color: darker(var(--foreground));
@@ -88,42 +86,6 @@ button {
 #system-tray {
   padding: 2px 4px;
   background-color: var(--module-bg);
-}
-
-/* menu and menu items (written for the system tray) */
-menu {
-  border: solid 2px;
-  border-radius: 10px;
-  border-color: var(--border-color);
-  background-color: var(--window-bg);
-}
-
-menuitem {
-  border-radius: 0px;
-  background-color: var(--module-bg);
-  padding: 6px;
-  /* margin: 2px; */
-  transition: background-color 0.05s linear;
-}
-
-menuitem:first-child {
-  margin-top: 1px;
-  border-radius: 8px 8px 0px 0px;
-}
-
-menuitem:last-child {
-  margin-bottom: 1px;
-  border-radius: 0px 0px 8px 8px;
-}
-
-menuitem:only-child {
-  margin-top: 1px;
-  margin-bottom: 1px;
-  border-radius: 8px;
-}
-
-menuitem:hover {
-  background-color: var(--border-color);
 }
 
 .panel-progress-bar {

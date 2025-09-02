@@ -24,8 +24,8 @@
 @define inner-margin-small 0.2rem;
 @define inner-margin-extra-small 0.1rem;
 
-@define border-radius-extra-large 1.5rem;
-@define border-radius-large 1.2rem;
+@define border-radius-extra-large 28px;
+@define border-radius-large 16px;
 @define border-radius-medium 8px;
 @define border-radius-small 4px;
 
@@ -72,16 +72,6 @@
 
 #progress-bar.ram {
   border: solid 0px var(--border-color);
-}
-
-tooltip {
-  border: solid 1px;
-  border-color: var(--border-color);
-  background-color: var(--window-bg);
-}
-
-tooltip > * {
-  padding: 2px 4px;
 }
 
 progressbar {

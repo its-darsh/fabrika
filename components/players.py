@@ -26,7 +26,7 @@ class Player(SwipeButton):
         self._player = player
         self._player_handlers: list[int] = []
 
-        self._player.props.player_name  # type: ignore
+        self._player.props.player_name
 
         self._title_label = Label(
             max_chars_width=20,
@@ -78,7 +78,7 @@ class Player(SwipeButton):
             "tooltip-text",
             self,
             transform_to=lambda _,
-            v: f"{self._player.get_title() or "Unknown"} - {self._player.get_artist() or "Unknown"}"
+            v: f"{self._player.get_title() or 'Unknown'} - {self._player.get_artist() or 'Unknown'}"
             or "Nothing Playing",
         )
 
@@ -123,10 +123,10 @@ class Player(SwipeButton):
                                     (
                                         update := lambda *_: lbl.set_label(
                                             "Track"
-                                            if (l := player.props.loop_status)
+                                            if (loopstat := player.props.loop_status)
                                             is Playerctl.LoopStatus.TRACK
                                             else "Playlist"
-                                            if l is Playerctl.LoopStatus.PLAYLIST
+                                            if loopstat is Playerctl.LoopStatus.PLAYLIST
                                             else "None"
                                         )
                                     ),
@@ -142,9 +142,10 @@ class Player(SwipeButton):
                 "button-press-event",
                 lambda *_: player.set_loop_status(
                     Playerctl.LoopStatus.NONE
-                    if (l := player.props.loop_status) is Playerctl.LoopStatus.TRACK
+                    if (loopstat := player.props.loop_status)
+                    is Playerctl.LoopStatus.TRACK
                     else Playerctl.LoopStatus.PLAYLIST
-                    if l is Playerctl.LoopStatus.NONE
+                    if loopstat is Playerctl.LoopStatus.NONE
                     else Playerctl.LoopStatus.TRACK
                 ),
             )
@@ -168,7 +169,7 @@ class Player(SwipeButton):
                         ),
                         self._prev_icon,
                         self._next_icon,
-                    ],  # FIXME: FABRIC TYPING ISSUE
+                    ],
                     h_expand=True,
                 ).build(
                     lambda ov, _: [
@@ -207,19 +208,24 @@ class Player(SwipeButton):
 
     def on_swipe(self, __, dx: float, dy: float, *_):
         # TODO: simplify logic
+        self.set_cursor("grab")
+        self.set_style("transition: unset;")
         self._metadata_box.set_style(f"opacity: {1.0 - round(abs(dx) * 2.0, 3)};")
         if dx > 0:
             self._next_icon.set_style("opacity: 0;")
             self._prev_icon.set_style(f"opacity: {round(dx, 3)};")
+            self.set_style(f"margin-left: {round(dx * 50)}px;")
             return
         self._prev_icon.set_style("opacity: 0;")
         self._next_icon.set_style(f"opacity: {round(abs(dx), 3)};")
         return
 
     def on_swipe_end(self, __, dx: float, dy: float, *_):
+        self.set_cursor("default")
         self._prev_icon.set_style("opacity: 0;")
         self._next_icon.set_style("opacity: 0;")
         self._metadata_box.set_style("opacity: 1;")
+        self.set_style("transition: margin linear 0.3s; margin-left: inherit;")
 
         if dx > 0.5:
             self._player.previous()
