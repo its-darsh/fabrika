@@ -16,7 +16,6 @@ from components.common import (
     remove_handler,
     FormattedString,
     ActiveWindow,
-    Workspaces,
     SystemTray,
     CenterBox,
     Language,
@@ -25,10 +24,17 @@ from components.common import (
     Box,
 )
 
+
 OSD_ENABLED: bool = True
 PAGER_ENABLED: bool = True
 LAUNCHER_ENABLED: bool = True
 NOTIFICATIONS_ENABLED: bool = True
+USE_EXPERIMENTAL_WORKSPACES: bool = True
+
+if USE_EXPERIMENTAL_WORKSPACES:
+    from components.snippets.workspaces import Workspaces as Workspaces
+else:
+    from fabric.hyprland.widgets import HyprlandWorkspaces as Workspaces
 
 
 class StatusBar(Window):
@@ -44,13 +50,27 @@ class StatusBar(Window):
                             spacing=4,
                             orientation="h",
                             children=[
-                                Workspaces(name="workspaces", spacing=4).build(
-                                    lambda wss: wss.connect(
-                                        "workspace-activated", lambda: toggle_pager()
-                                    )
-                                    if PAGER_ENABLED
-                                    else None
-                                ),
+                                (
+                                    (
+                                        (
+                                            workspaces := Workspaces()
+                                        ).get_inner_workspaces()
+                                        if USE_EXPERIMENTAL_WORKSPACES
+                                        else (
+                                            workspaces := Workspaces(
+                                                name="workspaces", spacing=4
+                                            )
+                                        )
+                                    ).build(
+                                        lambda wss: wss.connect(
+                                            "workspace-activated",
+                                            lambda: toggle_pager(),
+                                        )
+                                        if PAGER_ENABLED
+                                        else None
+                                    ),
+                                    workspaces,
+                                )[1],
                                 Box(name="players-container", children=Players()),
                             ],
                         ),

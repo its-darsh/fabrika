@@ -32,7 +32,7 @@ from fabric.system_tray.widgets import SystemTray
 
 from components.snippets.clippingbox import ClippingBox
 from components.snippets.swipebutton import SwipeButton
-from components.snippets.animator import Animator, cubic_bezier
+from components.snippets.animator import Animator, cubic_bezier, lerp
 from components.snippets.animatedscrollable import AnimatedScrollable
 from components.snippets.utils import (
     multiply_height_for_child,

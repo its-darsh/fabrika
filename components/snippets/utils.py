@@ -1,11 +1,53 @@
 import cairo
 from functools import reduce
-from typing import Iterable, cast
 from collections.abc import Callable
+from typing import TypeVar, Iterable, NamedTuple, cast
+
 from fabric.widgets.box import Box
 from fabric.utils import invoke_repeater
 
 from gi.repository import Gtk
+
+T = TypeVar("T")
+
+
+class Border(NamedTuple):
+    top: int
+    left: int
+    bottom: int
+    right: int
+
+
+class Rectangle(NamedTuple):
+    x: float
+    y: float
+    width: float
+    height: float
+
+
+def get_margin_box_for_widget(
+    widget: Gtk.Widget, context: Gtk.StyleContext | None = None
+) -> Border:
+    return (context or widget.get_style_context()).get_margin(
+        widget.get_state_flags()  # type: ignore
+    )
+
+
+def get_content_rect_for_widget(widget: Gtk.Widget) -> Rectangle:
+    alloc: Rectangle = widget.get_allocation()  # type: ignore
+    margin = get_margin_box_for_widget(widget)
+
+    return Rectangle(
+        alloc.x + margin.left,
+        alloc.y + margin.top,
+        alloc.width - (margin.left + margin.right),
+        alloc.height - (margin.top + margin.bottom),
+    )
+
+
+def iter_search(iter: Iterable[T], search_func: Callable[[T], bool]) -> T | None:
+    return next((item for item in iter if search_func(item)), None)
+
 
 def multiply_height_for_child(container: Box, child: Gtk.Widget, n_child: int) -> int:
     spacing: int = container.get_spacing()

@@ -27,31 +27,58 @@ button {
   background-color: var(--module-bg);
 }
 
-#workspaces > button {
+#workspaces button {
   padding: 0px 8px;
   transition: padding 0.05s steps(3);
   background-color: var(--ws-inactive);
 }
 
-#workspaces > button > label {
+#workspaces button label {
   font-size: 0px;
 }
 
-#workspaces > button:hover {
+#workspaces button:hover {
   background-color: var(--ws-hover);
 }
 
-#workspaces > button.urgent {
+#workspaces button.urgent {
   background-color: var(--ws-urgent);
 }
 
-#workspaces > button.active {
+#workspaces button.active {
   padding: 0px 32px;
   background-color: var(--ws-active);
 }
 
-#workspaces > button.empty {
+#workspaces button.empty {
   background-color: var(--ws-empty);
+}
+
+#workspaces.experimental {
+  background-color: var(--module-bg);
+  padding: 6px;
+}
+
+#workspaces.experimental button {
+  padding: 8px;
+  border-radius: 18px;
+  transition: border-radius 0.3s ease-in-out;
+  background-color: var(--ws-inactive);
+}
+
+#workspaces.experimental button.active {
+  background-color: var(--ws-active);
+  border-radius: 6px;
+}
+
+#workspaces.experimental button:hover {
+  background-color: var(--ws-active);
+}
+
+#tail {
+  /* border: solid 8px var(--ws-active); */
+  background-color: var(--ws-active);
+  border-radius: 18px;
 }
 
 #cava,

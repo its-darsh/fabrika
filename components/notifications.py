@@ -218,8 +218,8 @@ class NotificationsView(Box):
         self.scrolled_window = AnimatedScrollable(
             min_content_size=(420, 1),
             max_content_size=(420, 480),
-            # h_scrollbar_policy="never",
-            # v_scrollbar_policy="never",
+            h_scrollbar_policy="never",
+            v_scrollbar_policy="never",
             child=self.viewport,
             h_expand=True,
             v_expand=True,
@@ -313,8 +313,6 @@ class NotificationsView(Box):
         self.connect("notify::visible", self.on_visiblity_change)
 
     def on_children_change(self, *_):
-        # for fuck's sake don't repeat the same mistake
-        # we have two containers to work with
         self.scrolled_window.animate_size(
             get_children_height_limit(
                 self.viewport,

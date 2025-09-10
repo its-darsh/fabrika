@@ -17,8 +17,14 @@ from .common import (
     invoke_repeater,
 )
 
-gi.require_version("Glace", "0.1")
-from gi.repository import Glace
+
+try:
+    gi.require_version("Glace", "0.1")
+    from gi.repository import Glace
+except:
+    logger.error(
+        "[Pager] Can't import Glace, please install it first to be able of using the Pager widget (https://github.com/Fabric-Development/glace/tree/hyprland)"
+    )
 
 
 class HyprlandClient(TypedDict):
